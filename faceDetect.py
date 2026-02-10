@@ -24,6 +24,7 @@ img = cv2.resize(img,(640,480))
 imgC = imgProp(img)
 imgC.processImage()
 while(b == 1):
+    imgC.drawLinesAndCollide(200,18,10)
     gray = imgC.getGrayScale()
     faces = face_cascade.detectMultiScale(gray,1.1,4)
     if len(faces)>0:
@@ -38,6 +39,7 @@ while(b == 1):
             cv2.line(imgC.img,imgCenter,centerRect,(50,50,50),12)
         cv2.imshow("normalImage",imgC.img)
     cv2.imshow("",img)
+    cv2.imshow("lines",imgC.copyImg)
     b = cv2.waitKey(0)
 cv2.destroyAllWindows()
     
