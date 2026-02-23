@@ -1,4 +1,5 @@
-import cv2
+import callbacks
+from callbacks import cv2
 import image
 import numpy as np
 import time
@@ -13,6 +14,13 @@ import time
 ## i have never worked on physics system that's why it is so primitive and buggy. I should watch computer graphics related videos and recall some of the physics topic 
 ## also there is a problem with x and y order which causes to wrong calculations to occur 
 ## in opencv top left starts with 0,0 which is inverse of cartesian coordinate system this may also cause incorrect vector operations
+
+mouseLast = (0,0)
+
+
+
+
+
 
 class imageReader:
     def __init__(self, sourceName):
@@ -54,7 +62,7 @@ class PhysicalObject:
             return 0,0
     def gravity(self):
         y,x = self.loc
-        if (y>self.img.img.shape[0]):
+        if (y>self.img.shape[0]):
             self.addForce((0,9.81*self.mass))
         else:
             self.totalForce = self.totalForce[0],0
@@ -80,25 +88,37 @@ class videoReader:
         return b,f
 
 class CaptureMod:
-    def __init__(self,reader):
+    def __init__(self,reader,windowName):
         self.reader = reader
         self.image = image.imgProp(self.reader.getFrame()[1])
+        self.windowName = windowName
         self.mainMethod = self.reader.getFrame
         self.objList = []
+        callbacks.inputHandler(self.image,windowName,self)
+
     def main(self):
         b,self.image.img = self.mainMethod()
-    def addNewPhysicalObject(self,obj):
+        return b,self.image.img
+    def addNewPhysicalObject(self,x,y,v):
+        obj =  PhysicalObject((x,y),1,capt.image.img)
+        self.addNewPhysicalObjWithRef(obj,v)
+        
+
+    def addNewPhysicalObjWithRef(self,obj,initV=(0,0),initF=0):
         self.objList.append(obj)
         obj.loc = self.image.center
+        obj.addForce(initV)
         cv2.circle(self.image.img,obj.loc,16,(123,51,23))
+        #obj.addForce((155,-155))
+
 
     def updateAllLocations(self):
         for i in self.objList:
             if(i.totalForce[0] !=0 and i.totalForce[1] !=0):
-                i.friction(0.3)
+                i.friction(0.03)
             else:
-                print("net force on Object is 0")
-            i.gravity()
+                pass
+            #i.gravity()
             i.changeAccelaration()
             i.changeLoc()
             if(i is not None and i.loc is not None):
@@ -108,13 +128,12 @@ class CaptureMod:
 
 imReader = imageReader("1.jpg")
 vReader = videoReader("video.mp4")
-capt = CaptureMod(vReader)
-obj = PhysicalObject((5.5,1.0),1,capt.image)
-capt.addNewPhysicalObject(obj)
-#obj.addForce((123,-14))
+capt = CaptureMod(vReader,"mouseEvent")
 
-while(1):
-    capt.main()
+
+while(True):
+    _,frame =  capt.main()
+    v = frame
     """""""""""""""
     lines = cv2.HoughLinesP(processedImage,1,np.pi/180,20)
     for line in lines:
@@ -123,6 +142,6 @@ while(1):
             cv2.line(capt.image.img,(x1,y1),(x2,y2),(255,255,255))
     """""""""""""""
     capt.updateAllLocations()
-    cv2.imshow("2",capt.image.img)
+    cv2.imshow("mouseEvent",capt.image.img)
 
     cv2.waitKey(10) 
