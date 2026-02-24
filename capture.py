@@ -3,7 +3,7 @@ from callbacks import cv2
 import image
 import numpy as np
 import time
-
+import simpleMathOperations
 ### i dont want to use if else statement to change operation. 
 # I prefer to use composition where two or more class have methods with common name which i can call from another class
 ## in opencv we use seperate methods for reading an image and a video
@@ -16,11 +16,6 @@ import time
 ## in opencv top left starts with 0,0 which is inverse of cartesian coordinate system this may also cause incorrect vector operations
 
 mouseLast = (0,0)
-
-
-
-
-
 
 class imageReader:
     def __init__(self, sourceName):
@@ -129,11 +124,17 @@ class CaptureMod:
 imReader = imageReader("1.jpg")
 vReader = videoReader("video.mp4")
 capt = CaptureMod(vReader,"mouseEvent")
-
-
+math = simpleMathOperations.vectorMath()
+A =simpleMathOperations.TwoDimensionalVector(100,200)
+B = simpleMathOperations.vectorMath.rotateMatrice(A.MatriceAsColumn(),90)
+B = simpleMathOperations.TwoDimensionalVector(B[0][0],B[0][1])
+C = B.normalizeVector()
 while(True):
     _,frame =  capt.main()
     v = frame
+    A.drawVector(v,164,(400,400))
+    B.drawVector(v,164,(400,400))
+    C.drawVector(v,255,(470,470))
     """""""""""""""
     lines = cv2.HoughLinesP(processedImage,1,np.pi/180,20)
     for line in lines:

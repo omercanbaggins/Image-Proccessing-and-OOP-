@@ -73,13 +73,14 @@ class TwoDimensionalVector:
         return ((self.x,self.y),)
     def MarticeAsRow(self):
         return ((self.x,),(self.y,))
-    def drawVector(self,img,color):
+    def drawVector(self,img,color,pt):
         x,y = self.normalizeVector().x,self.normalizeVector().y
         tan = x/y 
+        ix,iy = pt 
         radian = math.atan(tan)
         degree = math.degrees(radian)
         for i in range (int(self.getLength())):
-            img[int(i*math.sin(radian))][int(i*math.cos(radian))] = color
+            img[ix+int(i*math.sin(radian))][iy + int(i*math.cos(radian))] = color
 
 
 
