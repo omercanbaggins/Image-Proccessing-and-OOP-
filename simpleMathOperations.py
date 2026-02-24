@@ -28,6 +28,37 @@ class vectorMath:
         v3 = (x1+x2),(y1+y2) 
         return v3,TwoDimensionalVector(v3)
     
+    def vectorMult(A,B):
+        r = A.__len__()
+        c = A[0].__len__()
+        r1 =  B.__len__()
+        c1 =B[0].__len__()
+
+        C = [[0 for _ in range(c1)] for _ in range(r)]
+        print(r1,c)
+        if (r1 == c):
+
+            for i in range(r):
+                for j in range(c1):
+                    for k in range(c):
+                        C[i][j] += A[i][k] * B[k][j]
+            return C
+        else:
+            return None
+        
+    def rotateMatrice(M,alfa):
+        constant = math.pi/180
+        alfa = alfa*constant 
+        R  = (math.cos(alfa),-1*math.sin(alfa)),(math.sin(alfa),math.cos(alfa))
+        return vectorMath.vectorMult(M,R)
+    
+    def ScalingMatrice(M,x,y):
+        S = ((x,0),(0,y))
+        return vectorMath.vectorMult(M,S)
+
+
+
+    
 class TwoDimensionalVector:
     def __init__(self,x=1,y=1):
         self.x =x
@@ -38,7 +69,18 @@ class TwoDimensionalVector:
         return vectorMath.normalize((self))
     def opposite(self):
         return TwoDimensionalVector(-1*self.x,-1*self.y)
+    def MatriceAsColumn(self):
+        return ((self.x,self.y),)
+    def MarticeAsRow(self):
+        return ((self.x,),(self.y,))
+ 
 
-v1 = TwoDimensionalVector(7,5)
+v1 = TwoDimensionalVector(1,2)
 norm = v1.normalizeVector()
-print(norm.x,norm.y)
+#print(norm.x,norm.y)
+
+A =((1,2),)
+#B = (1,2,3),(4,5,6),(7,8,9)
+#print(A[0].__len__())
+#print(vectorMath.vectorMult(A,B))
+print(vectorMath.rotateMatrice(v1.MatriceAsColumn(),15))
