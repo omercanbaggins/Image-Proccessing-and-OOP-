@@ -13,7 +13,7 @@ class vectorMath:
     def normalize(v1):
         x,y = v1.x,v1.y
         vLength = v1.getLength()
-        print(vLength)
+        #print(vLength)
         return TwoDimensionalVector(x/vLength,y/vLength)
     def dotProduct(self,pt1,pt2):
         x,y = pt1
@@ -35,7 +35,7 @@ class vectorMath:
         c1 =B[0].__len__()
 
         C = [[0 for _ in range(c1)] for _ in range(r)]
-        print(r1,c)
+        #print(r1,c)
         if (r1 == c):
 
             for i in range(r):

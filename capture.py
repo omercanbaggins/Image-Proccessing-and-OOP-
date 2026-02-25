@@ -68,7 +68,7 @@ class PhysicalObject:
         d1,d2 = self.getVelocityDirection()
         friction = (self.mass*fConstant*9.81*-1*d1,self.mass*fConstant*9.81*-1*d2)
         if(d1 == 0 and d2==0):
-            print(self.totalForce)
+            #print(self.totalForce)
             return
 
         self.addForce(friction)
@@ -94,31 +94,57 @@ class CaptureMod:
     def main(self):
         b,self.image.img = self.mainMethod()
         return b,self.image.img
-    def addNewPhysicalObject(self,x,y,v):
+    def addNewPhysicalObject(self,x,y,v,f):
         obj =  PhysicalObject((x,y),1,capt.image.img)
-        self.addNewPhysicalObjWithRef(obj,v)
+        self.addNewPhysicalObjWithRef(obj,v,f)
         
 
     def addNewPhysicalObjWithRef(self,obj,initV=(0,0),initF=0):
         self.objList.append(obj)
-        obj.loc = self.image.center
+    
         obj.addForce(initV)
         cv2.circle(self.image.img,obj.loc,16,(123,51,23))
         #obj.addForce((155,-155))
+
+    def checkObjectIsOutOfBorder(self,obj):
+        world = self.image
+        
+        w,h = world.width,world.height
+        x,y = obj.loc 
+        print(x,y)
+        if(x>w or x<0):
+            print("collision is detected due to width")
+
+            return True
+        elif(y<0 or y>h):
+            print("collision is detected")
+
+            return True
+        else:
+            print("no border")
+            return False
 
 
     def updateAllLocations(self):
         for i in self.objList:
             if(i.totalForce[0] !=0 and i.totalForce[1] !=0):
-                i.friction(0.03)
+                #i.friction(0.03)
+                pass
             else:
                 pass
             #i.gravity()
             i.changeAccelaration()
             i.changeLoc()
+            if(self.checkObjectIsOutOfBorder(i)):
+                x,y = i.Velocity
+                fx,fy = i.totalForce
+                #i.addForce((-1*fx,-1*fy))
+                i.Velocity = (-1*int(x),-1*int(y))
+                i.addForce((-fx,-fy))
             if(i is not None and i.loc is not None):
                 cv2.circle(self.image.img,(int(i.loc[0]),int(i.loc[1])),16,(123,51,23))
                 #print(i.loc)
+
     
 
 imReader = imageReader("1.jpg")

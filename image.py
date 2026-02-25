@@ -3,10 +3,10 @@ import numpy as np
 class imgProp:
     def __init__(self,img):
         ##if img.isinstance(cv2.UMat):
-            self.width =img.shape[0]
-            self.height=img.shape[1]
+            self.width =img.shape[1]
+            self.height=img.shape[0]
             self.img = img
-            self.center = self.width//2,self.height//2
+            self.center = (self.width//2,self.height//2)
             self.copyImg = img.copy()
     def getGrayScale(self):
         if self.img is not None:      ##we might often need grayscale of source image in order to apply various effect. I created spreate getter for it.
