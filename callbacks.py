@@ -20,8 +20,8 @@ class inputHandler:
             #print(x,y)
         if event == cv2.EVENT_LBUTTONUP:
             self.isPressing = 0
-            self.captureMod.addNewPhysicalObject(x,y,self.mouseV)
-            print(self.mouseV)
+            self.captureMod.addNewPhysicalObject(x,y,self.mouseV,self.mouseV)
+            #print(self.mouseV)
             cv2.circle(self.captureMod.image.img,(x,y),16,(41,123,24))
 
         if event == cv2.EVENT_MOUSEMOVE and self.isPressing==1:
