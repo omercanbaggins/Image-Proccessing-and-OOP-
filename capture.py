@@ -35,7 +35,7 @@ class PhysicalObject:
         self.angularForce =(0,0)
         self.angularAcc = (0,0)
         self.angularVelocity = (0,0)
-        self.directionAngle = 0
+        self.directionAngle = -15
         self.directionRadian = m.radians(self.directionAngle)
         self.direction = simpleMathOperations.TwoDimensionalVector(1*np.cos(self.directionRadian),1*np.sin(self.directionRadian))
         self.torque = 0
@@ -54,23 +54,30 @@ class PhysicalObject:
         ix,iy = iP
         lx,ly = self.loc
         r = (lx-ix,ly-iy)
+        print(r[0],r[1])
+        #print(simpleMathOperations.vectorMath.crossProduct(r,Force))
         self.torque+= simpleMathOperations.vectorMath.crossProduct(r,Force)
-       
         return self.torque
     def angular(self):
-        angularACC = self.torque/5.25 
+        angularACC = self.torque/5.25
         omega = angularACC*0.01
         self.directionAngle+=omega
-        self.direction =self.direction.rotateVector(self.directionAngle)
-    def addForce(self,f):
+        self.directionRadian = m.radians(self.directionAngle)
+        self.direction = simpleMathOperations.TwoDimensionalVector(1*np.cos(self.directionRadian),1*np.sin(self.directionRadian))
+        
+
+    def addForce(self,f,l=None):
+        if l is None:
+            l = self.loc
+
         self.totalForce = self.totalForce[0]+f[0],self.totalForce[1]+f[1]
         self.totalForce = (self.totalForce[0]),(self.totalForce[1])
+        self.addTorque(l,self.totalForce)
     def changeLoc(self):
         self.loc = self.loc[0]+(self.Velocity[0]*0.01),self.loc[1]+(self.Velocity[1]*0.01)
     def getVelocityDirection(self):
         x,y = self.Velocity
         vLength = np.sqrt(np.square(x)+np.square(y))
-
         
         if (vLength> 1e-3):
             return (x/vLength,y/vLength)
@@ -114,32 +121,39 @@ class CaptureMod:
 
     def main(self):
         b,self.image.img = self.mainMethod()
+        f = self.image.img
+        self.image.img = cv2.resize(f,(640,480))
         return b,self.image.img
     def addNewPhysicalObject(self,x,y,v,f):
-    
+       
         obj =  PhysicalObject((x,y),1,capt.image.img)
         self.addNewPhysicalObjWithRef(obj,v,f)
         
 
     def addNewPhysicalObjWithRef(self,obj,initV=(0,0),initF=0):
+        
         self.objList.append(obj)
         obj.addForce(initV)
         cv2.circle(self.image.img,obj.loc,16,(123,51,23))
 
     def checkObjectIsOutOfBorder(self,obj):
         world = self.image
-        
         w,h = world.width,world.height
         x,y = obj.loc 
         if(x>w or x<0):
             print("collision is detected due to width")
-            obj.addTorque((50,50),(0,1000))
-
+            if(x<0):
+                obj.addTorque((obj.loc[0]-16,obj.loc[1]),(10,0))
+            else:
+                obj.addTorque((obj.loc[0]+16,obj.loc[1]),(-10,0))
             return True
-        elif(y<0 or y>h):
-            print("collision is detected")
-            obj.addTorque((50,50),(1000,0))
+        if(y<0 or y>h):
+            if(y<0):
+                obj.addTorque((obj.loc[0],obj.loc[1]+16),(0,10))
+            else:
+                obj.addTorque((obj.loc[0],obj.loc[1]-16),(0,-10))
 
+            print("collision is detected")
             return True
         else:
            # print("no border")
@@ -158,11 +172,13 @@ class CaptureMod:
             i.changeLoc()
             i.angular()
             pt1 = int(i.loc[0]),int(i.loc[1])
-            pt2 = pt1[0]+i.direction.x,pt1[0]+i.direction.y
-            pt2 = int(pt2[0])*20,int(pt2[1])*20
+            directionPt = +i.direction.x*100,+i.direction.y*100
+            pt2 = pt1[0]+directionPt[0],pt1[1]+directionPt[1]
+
+            pt2 = int(pt2[0]),int(pt2[1])
             cv2.line(self.image.img,pt1,pt2,(255,255,255),3)
             
-            print(i.direction.x,i.direction.y)
+            #print(i.direction.x,i.direction.y)
             #print(i.directionAngle)
 
             if(self.checkObjectIsOutOfBorder(i)):
@@ -188,6 +204,7 @@ C = B.normalizeVector()
 while(True):
     _,frame =  capt.main()
     v = frame
+
     A.drawVector(v,164,(400,400))
     B.drawVector(v,164,(400,400))
     C.drawVector(v,255,(470,470))
