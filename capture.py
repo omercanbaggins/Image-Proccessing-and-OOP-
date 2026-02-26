@@ -4,6 +4,7 @@ import image
 import numpy as np
 import time
 import simpleMathOperations
+import math as m
 ### i dont want to use if else statement to change operation. 
 # I prefer to use composition where two or more class have methods with common name which i can call from another class
 ## in opencv we use seperate methods for reading an image and a video
@@ -14,7 +15,7 @@ import simpleMathOperations
 ## i have never worked on physics system that's why it is so primitive and buggy. I should watch computer graphics related videos and recall some of the physics topic 
 ## also there is a problem with x and y order which causes to wrong calculations to occur 
 ## in opencv top left starts with 0,0 which is inverse of cartesian coordinate system this may also cause incorrect vector operations
-
+v = None
 mouseLast = (0,0)
 
 class imageReader:
@@ -25,12 +26,20 @@ class imageReader:
         return self.frame is None,self.frame
 
 class PhysicalObject:
-    def __init__(self,loc,mass,img):
+    def __init__(self,loc,mass,img,directionAngle=0):
         self.loc = (loc)
         self.totalForce = (0.0,0.0)
         self.Velocity = (0.0,0.0)
         self.mass = mass
         self.img = img
+        self.angularForce =(0,0)
+        self.angularAcc = (0,0)
+        self.angularVelocity = (0,0)
+        self.directionAngle = 0
+        self.directionRadian = m.radians(self.directionAngle)
+        self.direction = simpleMathOperations.TwoDimensionalVector(1*np.cos(self.directionRadian),1*np.sin(self.directionRadian))
+        self.torque = 0
+        print(self.direction.x,self.direction.y)
         if self.mass == 0 : self.mass = 0.001
     def changeAccelaration(self):
         acc = self.totalForce[0]/self.mass,self.totalForce[1]/self.mass
@@ -41,6 +50,18 @@ class PhysicalObject:
         if abs(y) < 1e-3:
             y = 0.0
         self.Velocity = (x, y)
+    def addTorque(self,iP,Force):
+        ix,iy = iP
+        lx,ly = self.loc
+        r = (lx-ix,ly-iy)
+        self.torque+= simpleMathOperations.vectorMath.crossProduct(r,Force)
+       
+        return self.torque
+    def angular(self):
+        angularACC = self.torque/5.25 
+        omega = angularACC*0.01
+        self.directionAngle+=omega
+        self.direction =self.direction.rotateVector(self.directionAngle)
     def addForce(self,f):
         self.totalForce = self.totalForce[0]+f[0],self.totalForce[1]+f[1]
         self.totalForce = (self.totalForce[0]),(self.totalForce[1])
@@ -48,8 +69,8 @@ class PhysicalObject:
         self.loc = self.loc[0]+(self.Velocity[0]*0.01),self.loc[1]+(self.Velocity[1]*0.01)
     def getVelocityDirection(self):
         x,y = self.Velocity
-     
         vLength = np.sqrt(np.square(x)+np.square(y))
+
         
         if (vLength> 1e-3):
             return (x/vLength,y/vLength)
@@ -95,33 +116,33 @@ class CaptureMod:
         b,self.image.img = self.mainMethod()
         return b,self.image.img
     def addNewPhysicalObject(self,x,y,v,f):
+    
         obj =  PhysicalObject((x,y),1,capt.image.img)
         self.addNewPhysicalObjWithRef(obj,v,f)
         
 
     def addNewPhysicalObjWithRef(self,obj,initV=(0,0),initF=0):
         self.objList.append(obj)
-    
         obj.addForce(initV)
         cv2.circle(self.image.img,obj.loc,16,(123,51,23))
-        #obj.addForce((155,-155))
 
     def checkObjectIsOutOfBorder(self,obj):
         world = self.image
         
         w,h = world.width,world.height
         x,y = obj.loc 
-        print(x,y)
         if(x>w or x<0):
             print("collision is detected due to width")
+            obj.addTorque((50,50),(0,1000))
 
             return True
         elif(y<0 or y>h):
             print("collision is detected")
+            obj.addTorque((50,50),(1000,0))
 
             return True
         else:
-            print("no border")
+           # print("no border")
             return False
 
 
@@ -135,6 +156,15 @@ class CaptureMod:
             #i.gravity()
             i.changeAccelaration()
             i.changeLoc()
+            i.angular()
+            pt1 = int(i.loc[0]),int(i.loc[1])
+            pt2 = pt1[0]+i.direction.x,pt1[0]+i.direction.y
+            pt2 = int(pt2[0])*20,int(pt2[1])*20
+            cv2.line(self.image.img,pt1,pt2,(255,255,255),3)
+            
+            print(i.direction.x,i.direction.y)
+            #print(i.directionAngle)
+
             if(self.checkObjectIsOutOfBorder(i)):
                 x,y = i.Velocity
                 fx,fy = i.totalForce

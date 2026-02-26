@@ -55,6 +55,10 @@ class vectorMath:
     def ScalingMatrice(M,x,y):
         S = ((x,0),(0,y))
         return vectorMath.vectorMult(M,S)
+    def crossProduct(A,B):
+        i,j = A
+        i1,j1 = B
+        return (i*j1-i1*j)
 
 
 
@@ -82,7 +86,9 @@ class TwoDimensionalVector:
         for i in range (int(self.getLength())):
             img[ix+int(i*math.sin(radian))][iy + int(i*math.cos(radian))] = color
 
-
+    def rotateVector(self,angle):
+        A = vectorMath.rotateMatrice(self.MatriceAsColumn(),angle)
+        return TwoDimensionalVector(A[0][0],A[0][1])
 
 
 
