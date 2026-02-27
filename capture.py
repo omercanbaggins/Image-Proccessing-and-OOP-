@@ -39,8 +39,15 @@ class PhysicalObject:
         self.directionRadian = m.radians(self.directionAngle)
         self.direction = simpleMathOperations.TwoDimensionalVector(1*np.cos(self.directionRadian),1*np.sin(self.directionRadian))
         self.torque = 0
+        self.childObjects = []
         print(self.direction.x,self.direction.y)
         if self.mass == 0 : self.mass = 0.001
+
+    def attachObject(self,obj,relativeLoc):
+        x,y = relativeLoc
+        obj.loc = self.loc[0]+x,self.loc[1]+y
+
+
     def changeAccelaration(self):
         acc = self.totalForce[0]/self.mass,self.totalForce[1]/self.mass
         self.Velocity= self.Velocity[0]+(acc[0]*0.01),self.Velocity[1]+(acc[1]*0.01)
@@ -64,7 +71,8 @@ class PhysicalObject:
         self.directionAngle+=omega
         self.directionRadian = m.radians(self.directionAngle)
         self.direction = simpleMathOperations.TwoDimensionalVector(1*np.cos(self.directionRadian),1*np.sin(self.directionRadian))
-        
+    
+    
 
     def addForce(self,f,l=None):
         if l is None:
@@ -84,17 +92,19 @@ class PhysicalObject:
         else:
             return 0,0
     def gravity(self):
-        y,x = self.loc
-        if (y>self.img.shape[0]):
+        x,y = self.loc
+        if (y+16<self.img.shape[0]):
             self.addForce((0,9.81*self.mass))
+            print("object is in the air")
         else:
+            print("object is in the air")
+
             self.totalForce = self.totalForce[0],0
             self.Velocity = self.Velocity[0],0
-            return 
 
     def friction(self,fConstant):
         d1,d2 = self.getVelocityDirection()
-        friction = (self.mass*fConstant*9.81*-1*d1,self.mass*fConstant*9.81*-1*d2)
+        friction = (self.mass*fConstant*9.81*-1*d1,0)
         if(d1 == 0 and d2==0):
             #print(self.totalForce)
             return
@@ -143,15 +153,15 @@ class CaptureMod:
         if(x>w or x<0):
             print("collision is detected due to width")
             if(x<0):
-                obj.addTorque((obj.loc[0]-16,obj.loc[1]),(10,0))
+                obj.addTorque((obj.loc[0]-16,obj.loc[1]),(100,111))
             else:
-                obj.addTorque((obj.loc[0]+16,obj.loc[1]),(-10,0))
+                obj.addTorque((obj.loc[0]+16,obj.loc[1]),(-100,111))
             return True
         if(y<0 or y>h):
             if(y<0):
-                obj.addTorque((obj.loc[0],obj.loc[1]+16),(0,10))
+                obj.addTorque((obj.loc[0],obj.loc[1]+16),(111,100))
             else:
-                obj.addTorque((obj.loc[0],obj.loc[1]-16),(0,-10))
+                obj.addTorque((obj.loc[0],obj.loc[1]-16),(111,-100))
 
             print("collision is detected")
             return True
@@ -167,7 +177,7 @@ class CaptureMod:
                 pass
             else:
                 pass
-            #i.gravity()
+            i.gravity()
             i.changeAccelaration()
             i.changeLoc()
             i.angular()
@@ -203,8 +213,8 @@ B = simpleMathOperations.TwoDimensionalVector(B[0][0],B[0][1])
 C = B.normalizeVector()
 while(True):
     _,frame =  capt.main()
-    v = frame
-
+    v = np.zeros_like(frame)
+    capt.image.img = v
     A.drawVector(v,164,(400,400))
     B.drawVector(v,164,(400,400))
     C.drawVector(v,255,(470,470))

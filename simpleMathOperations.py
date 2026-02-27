@@ -3,12 +3,16 @@ import numpy as np
 
 class vectorMath:
     pi = np.pi
+
     def convertToDegree(radianValue):
         degree = radianValue* vectorMath.pi/180
         return degree
     def calcLength(vector):
-        x,y = vector
-        length = np.sqrt(np.pow(x,2)+np.pow(y,2))
+        compSqrTotal = 0 
+        for comp in vector.compValueList:
+            compSqrTotal+= np.pow(comp,2)
+        length = np.sqrt(compSqrTotal)
+
         return  length
     def normalize(v1):
         x,y = v1.x,v1.y
@@ -62,13 +66,14 @@ class vectorMath:
 
 
 
-    
+
 class TwoDimensionalVector:
     def __init__(self,x=1,y=1):
         self.x =x
         self.y =y 
+        self.compValueList = (self.x,self.y)
     def getLength(self):
-        return vectorMath.calcLength((self.x,self.y))
+        return vectorMath.calcLength(self)
     def normalizeVector(self):
         return vectorMath.normalize((self))
     def opposite(self):
@@ -84,12 +89,21 @@ class TwoDimensionalVector:
         radian = math.atan(tan)
         degree = math.degrees(radian)
         for i in range (int(self.getLength())):
-            img[ix+int(i*math.sin(radian))][iy + int(i*math.cos(radian))] = color
+            try:
+                img[ix+int(i*math.sin(radian))][iy + int(i*math.cos(radian))] = color
+                
+            except IndexError:
+                pass
 
     def rotateVector(self,angle):
         A = vectorMath.rotateMatrice(self.MatriceAsColumn(),angle)
         return TwoDimensionalVector(A[0][0],A[0][1])
 
+
+class vector3d(TwoDimensionalVector):
+    def __init__(self,x,y,z):
+        TwoDimensionalVector(x,y)
+        self.z =z
 
 
 v1 = TwoDimensionalVector(1,2)
