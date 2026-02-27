@@ -27,6 +27,7 @@ class imageReader:
 
 class PhysicalObject:
     def __init__(self,loc,mass,img,directionAngle=0):
+        self.radius = 16
         self.loc = (loc)
         self.totalForce = (0.0,0.0)
         self.Velocity = (0.0,0.0)
@@ -40,7 +41,6 @@ class PhysicalObject:
         self.direction = simpleMathOperations.TwoDimensionalVector(1*np.cos(self.directionRadian),1*np.sin(self.directionRadian))
         self.torque = 0
         self.childObjects = []
-        print(self.direction.x,self.direction.y)
         if self.mass == 0 : self.mass = 0.001
 
     def attachObject(self,obj,relativeLoc):
@@ -61,7 +61,6 @@ class PhysicalObject:
         ix,iy = iP
         lx,ly = self.loc
         r = (lx-ix,ly-iy)
-        print(r[0],r[1])
         #print(simpleMathOperations.vectorMath.crossProduct(r,Force))
         self.torque+= simpleMathOperations.vectorMath.crossProduct(r,Force)
         return self.torque
@@ -71,8 +70,6 @@ class PhysicalObject:
         self.directionAngle+=omega
         self.directionRadian = m.radians(self.directionAngle)
         self.direction = simpleMathOperations.TwoDimensionalVector(1*np.cos(self.directionRadian),1*np.sin(self.directionRadian))
-    
-    
 
     def addForce(self,f,l=None):
         if l is None:
@@ -95,9 +92,7 @@ class PhysicalObject:
         x,y = self.loc
         if (y+16<self.img.shape[0]):
             self.addForce((0,9.81*self.mass))
-            print("object is in the air")
         else:
-            print("object is in the air")
 
             self.totalForce = self.totalForce[0],0
             self.Velocity = self.Velocity[0],0
@@ -168,10 +163,44 @@ class CaptureMod:
         else:
            # print("no border")
             return False
+    def checkObjectsAreColliding(self,obj,obj2):
+        r1,r2 = obj.radius,obj2.radius
+        x1,y1 = obj.loc
+        x2,y2 = obj2.loc
+        dx,dy = x1-x2,y1-y2
+        distance = np.sqrt(np.pow(dx,2)+np.pow(dy,2))
+        if distance == 0:
+            return
 
+        if distance < r1 + r2:
+
+            nx = dx / distance
+            ny = dy / distance
+
+            rvx = obj.Velocity[0] - obj2.Velocity[0]
+            rvy = obj.Velocity[1] - obj2.Velocity[1]
+
+            velAlongNormal = rvx * nx + rvy * ny
+
+            if velAlongNormal > 0:
+                return
+
+            e = 0.8  # restitution
+
+            j = -(1 + e) * velAlongNormal
+            j /= (1/obj.mass + 1/obj2.mass)
+
+            impulse_x = j * nx
+            impulse_y = j * ny
+
+            obj.Velocity = obj.Velocity[0]+impulse_x / obj.mass,obj.Velocity[1]+impulse_y / obj.mass
+            obj2.Velocity = -1*(obj.Velocity[0]+impulse_x / obj.mass),-1*(obj.Velocity[1]+impulse_y / obj.mass)
+
+        
 
     def updateAllLocations(self):
         for i in self.objList:
+            
             if(i.totalForce[0] !=0 and i.totalForce[1] !=0):
                 #i.friction(0.03)
                 pass
@@ -191,6 +220,7 @@ class CaptureMod:
             #print(i.direction.x,i.direction.y)
             #print(i.directionAngle)
 
+
             if(self.checkObjectIsOutOfBorder(i)):
                 x,y = i.Velocity
                 fx,fy = i.totalForce
@@ -200,7 +230,12 @@ class CaptureMod:
             if(i is not None and i.loc is not None):
                 cv2.circle(self.image.img,(int(i.loc[0]),int(i.loc[1])),16,(123,51,23))
                 #print(i.loc)
-
+            
+            for j in self.objList:
+                if i == j:
+                    continue
+                else:
+                    self.checkObjectsAreColliding(i,j)
     
 
 imReader = imageReader("1.jpg")
